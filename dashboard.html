@@ -328,4 +328,165 @@
   <div class="page-title">🎧 Support</div>
   <div class="support-chat">
     <div class="support-messages" id="supportMessages">
-      <div class="msg bot"><div class="msg-avatar">🤖</div><div class="msg-bubble">Hi! I'm VictroX AI Support. How can I help you 
+      <div class="msg bot"><div class="msg-avatar">🤖</div><div class="msg-bubble">Hi! I'm VictroX AI Support. How can I help you? 😊</div></div>
+      <div class="msg bot"><div class="msg-avatar">🤖</div><div class="msg-bubble">Ask me about tournaments, rules, wallet, or premium!</div></div>
+    </div>
+    <div class="support-input">
+      <input type="text" id="supportInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendSupport()"/>
+      <button class="send-btn" onclick="sendSupport()">➤</button>
+    </div>
+  </div>
+  <div class="admin-contact-box">
+    <p>Have a big problem that AI can't solve?<br/>Contact admin directly!</p>
+    <button class="contact-admin-btn" onclick="checkGuestFeature()">📩 Contact Admin</button>
+  </div>
+</div>
+
+<!-- LOCKED POPUP -->
+<div class="locked-popup" id="lockedPopup">
+  <div class="locked-box">
+    <div class="licon">🔒</div>
+    <h3>Feature Locked</h3>
+    <p>Create a free account to unlock this feature!</p>
+    <div class="locked-btns">
+      <button class="btn-create-acc" onclick="goToLogin()">Create Account</button>
+      <button class="btn-close-locked" onclick="closeLocked()">Maybe Later</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showPage('profile')"><span class="nav-icon">👤</span>Profile</button>
+  <button class="nav-btn" onclick="showPage('rules')"><span class="nav-icon">📖</span>Rules</button>
+  <button class="nav-btn" onclick="checkGuestNav('wallet')"><span class="nav-icon">💰</span>Wallet</button>
+  <button class="nav-btn" onclick="checkGuestNav('chat')"><span class="nav-icon">💬</span>Chat</button>
+  <button class="nav-btn" onclick="showPage('events')"><span class="nav-icon">🏆</span>Events</button>
+  <button class="nav-btn" onclick="checkGuestNav('support')"><span class="nav-icon">🎧</span>Support</button>
+</div>
+
+<script>
+  let isGuest = false;
+  let userName = 'Player';
+  try {
+    isGuest = sessionStorage.getItem('vx_guest') === 'true';
+    userName = sessionStorage.getItem('vx_user') || 'Player';
+  } catch(e) { console.log('storage blocked'); }
+
+  // Set profile info
+  if(isGuest) {
+    document.getElementById('profileBadge').className = 'guest-badge';
+    document.getElementById('profileBadge').textContent = '👤 Guest';
+    document.getElementById('profileName').textContent = 'Guest User';
+    document.getElementById('profileHandle').textContent = '@guest';
+    document.getElementById('topAvatar').textContent = 'G';
+    document.getElementById('profileAvatar').innerHTML = 'G<div class="camera-badge" onclick="checkCameraAccess()">📷</div>';
+  } else if(userName) {
+    const initial = userName[0].toUpperCase();
+    document.getElementById('profileName').textContent = userName.includes('@') ? userName.split('@')[0] : userName;
+    document.getElementById('profileHandle').textContent = '@' + (userName.includes('@') ? userName.split('@')[0] : userName).toLowerCase() + '#0001';
+    document.getElementById('topAvatar').textContent = initial;
+    document.getElementById('profileAvatar').innerHTML = initial + '<div class="camera-badge" onclick="checkCameraAccess()">📷</div>';
+  }
+
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    const pages = ['profile','rules','wallet','chat','events','support'];
+    document.querySelectorAll('.nav-btn')[pages.indexOf(name)].classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  function checkGuestNav(page) {
+    if(isGuest) { showLocked(); } else { showPage(page); }
+  }
+
+  function checkGuestFeature() {
+    if(isGuest) { showLocked(); }
+  }
+
+  function checkCameraAccess() {
+    if(isGuest) { showLocked(); return; }
+    alert('Profile photo upload requires Premium! Upgrade to Premium to add your photo.');
+  }
+
+  function showLocked() {
+    document.getElementById('lockedPopup').classList.add('show');
+  }
+
+  function closeLocked() {
+    document.getElementById('lockedPopup').classList.remove('show');
+  }
+
+  function goToLogin() {
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+  }
+
+  function signOut() {
+    if(confirm('Are you sure you want to sign out?')) {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+  }
+
+  function editProfile() {
+    if(isGuest) { showLocked(); return; }
+    const name = prompt('Enter new name:', document.getElementById('profileName').textContent);
+    if(name && name.trim()) {
+      const n = name.trim();
+      document.getElementById('profileName').textContent = n;
+      document.getElementById('profileHandle').textContent = '@' + n.toLowerCase().replace(/\s/g,'') + '#0001';
+      document.getElementById('topAvatar').textContent = n[0].toUpperCase();
+      document.getElementById('profileAvatar').innerHTML = n[0].toUpperCase() + '<div class="camera-badge" onclick="checkCameraAccess()">📷</div>';
+    }
+  }
+
+  function filterTab(el, filter) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.tournament-card').forEach(card => {
+      card.style.display = (filter === 'all' || card.dataset.status === filter) ? 'block' : 'none';
+    });
+  }
+
+  const aiReplies = {
+    'tournament': 'You can join tournaments from the Events tab! Tap "Join Tournament" to register 🏆',
+    'premium': 'Premium costs PKR 499/week or PKR 999/month. Get profile photo, badge, special chat color & more! 👑',
+    'wallet': 'Go to Wallet tab to deposit or withdraw VX Coins 💰',
+    'rules': 'Check the Rules tab for all tournament and game rules 📖',
+    'win': 'Keep playing tournaments to increase your win rate! Practice makes perfect 🔥',
+    'ban': 'If you think you were wrongly banned, please use the Contact Admin button below.',
+    'admin': 'For big issues, use the Contact Admin button below 👇',
+    'help': 'I can help with: tournaments, premium, wallet, rules, or chat!',
+    'chat': 'Go to the Chat tab to message other players! 💬',
+    'join': 'Go to Events tab and tap "Join Tournament" to participate! 🏆',
+    'default': 'I am not sure about that. Try asking about tournaments, wallet, premium or rules! For complex issues, contact admin 👇'
+  };
+
+  function sendSupport() {
+    const input = document.getElementById('supportInput');
+    const msg = input.value.trim();
+    if(!msg) return;
+    const messages = document.getElementById('supportMessages');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'msg user';
+    userMsg.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-bubble">${msg}</div>`;
+    messages.appendChild(userMsg);
+    input.value = '';
+    messages.scrollTop = messages.scrollHeight;
+    setTimeout(() => {
+      const lower = msg.toLowerCase();
+      let reply = aiReplies.default;
+      for(const key in aiReplies) { if(lower.includes(key)) { reply = aiReplies[key]; break; } }
+      const botMsg = document.createElement('div');
+      botMsg.className = 'msg bot';
+      botMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">${reply}</div>`;
+      messages.appendChild(botMsg);
+      messages.scrollTop = messages.scrollHeight;
+    }, 800);
+  }
+</script>
+</body>
+</html>
